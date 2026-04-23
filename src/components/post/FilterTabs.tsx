@@ -25,7 +25,7 @@ export const FilterTabs = observer(function FilterTabs({ value, onChange }: Filt
           <Pressable
             key={item.value}
             onPress={() => onChange(item.value)}
-            style={[styles.tab, isActive && styles.activeTab]}
+            style={({ pressed }) => [styles.tab, isActive && styles.activeTab, pressed && !isActive && styles.tabPressed]}
           >
             <Text style={[styles.label, isActive && styles.activeLabel]}>{item.label}</Text>
           </Pressable>
@@ -38,24 +38,32 @@ export const FilterTabs = observer(function FilterTabs({ value, onChange }: Filt
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#F1F1F4',
-    borderRadius: theme.radius.pill,
-    padding: 4,
-    gap: 6,
+    backgroundColor: theme.colors.white,
+    borderRadius: 22,
+    padding: 10,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#E8E8ED',
     marginBottom: theme.spacing.md,
   },
   tab: {
     flex: 1,
-    borderRadius: theme.radius.pill,
-    paddingVertical: 12,
+    minHeight: 38,
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     alignItems: 'center',
-    backgroundColor: theme.colors.white,
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   activeTab: {
-    backgroundColor: theme.semantic.primary,
+    backgroundColor: '#6115CD',
+  },
+  tabPressed: {
+    backgroundColor: '#F4F1FA',
   },
   label: {
-    color: theme.semantic.textMuted,
+    color: '#677487',
     fontSize: theme.typography.caption,
     fontWeight: '700',
   },

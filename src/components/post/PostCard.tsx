@@ -19,15 +19,20 @@ function formatDate(input: string) {
 }
 
 export function PostCard({ post, isLikePending, onLikePress, onPress }: PostCardProps) {
-  const showMore = post.preview.trim().length > 72;
+  const isPaidPost = post.tier === 'paid';
+  const canOpenPost = !isPaidPost;
 
   const handleLikePress = (event: GestureResponderEvent) => {
     event.stopPropagation();
     onLikePress?.();
   };
 
+  const handleDonatePress = (event: GestureResponderEvent) => {
+    event.stopPropagation();
+  };
+
   return (
-    <Pressable onPress={onPress} style={styles.card}>
+    <Pressable disabled={!canOpenPost} onPress={onPress} style={styles.card}>
       <View style={styles.header}>
         <View style={styles.authorRow}>
           <Image source={{ uri: post.author.avatarUrl }} style={styles.avatar} />
@@ -42,10 +47,31 @@ export function PostCard({ post, isLikePending, onLikePress, onPress }: PostCard
         <Text style={styles.handle}>{formatDate(post.createdAt)}</Text>
       </View>
 
-      <Image source={{ uri: post.coverUrl }} style={styles.cover} />
+      <View style={styles.coverWrap}>
+        <Image source={{ uri: post.coverUrl }} style={[styles.cover, isPaidPost && styles.coverPaid]} />
+        {isPaidPost ? (
+          <View style={styles.paidOverlay}>
+            <View style={styles.paidBlurLayer} />
+            <View style={styles.paidTintLayer} />
+            <View style={styles.paidBadge}>
+              <View style={styles.paidBadgeInner}>
+                <Feather color={theme.semantic.primary} name="dollar-sign" size={16} />
+              </View>
+            </View>
+            <Text style={styles.paidText}>Контент скрыт пользователем.{`\n`}Доступ откроется после доната</Text>
+            <Pressable onPress={handleDonatePress} style={({ pressed }) => [styles.paidButton, pressed && styles.paidButtonPressed]}>
+              <Text style={styles.paidButtonLabel}>Отправить донат</Text>
+            </Pressable>
+          </View>
+        ) : null}
+      </View>
       <View style={styles.content}>
-        <Text numberOfLines={2} style={styles.title}>{post.title}</Text>
-        <Text numberOfLines={2} style={styles.preview}>{post.preview}</Text>
+        {!isPaidPost ? (
+          <>
+            <Text numberOfLines={2} style={styles.title}>{post.title}</Text>
+          <Text numberOfLines={2} style={styles.preview}>{post.preview}</Text>
+          </>
+        ) : null}
 
         <View style={styles.footer}>
           <Pressable
@@ -133,6 +159,14 @@ const styles = StyleSheet.create({
     height: 380,
     backgroundColor: theme.colors.line,
   },
+  coverWrap: {
+    position: 'relative',
+  },
+  coverPaid: {
+    opacity: 0.24,
+    transform: [{ scale: 1.08 }],
+    filter: 'blur(10px)',
+  },
   content: {
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.md,
@@ -150,11 +184,73 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.body,
     lineHeight: 24,
   },
-  moreLabel: {
-    marginTop: 4,
-    color: theme.semantic.primary,
+  paidOverlay: {
+    position: 'absolute',
+    inset: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+  },
+  paidBlurLayer: {
+    position: 'absolute',
+    inset: 0,
+    backgroundColor: 'rgba(22, 20, 26, 0.18)',
+  },
+  paidTintLayer: {
+    position: 'absolute',
+    inset: 0,
+    backgroundColor: 'rgba(28, 22, 32, 0.52)',
+  },
+  paidBadge: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: theme.semantic.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.md,
+    shadowColor: '#000000',
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
+  },
+  paidBadgeInner: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: theme.colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paidText: {
+    color: theme.colors.white,
+    textAlign: 'center',
+    fontSize: theme.typography.subtitle,
+    lineHeight: 28,
+    fontWeight: '500',
+    marginBottom: theme.spacing.lg,
+    textShadowColor: 'rgba(0, 0, 0, 0.16)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  paidButton: {
+    minWidth: 240,
+    minHeight: 42,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.semantic.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  paidButtonPressed: {
+    backgroundColor: theme.semantic.primaryPressed,
+  },
+  paidButtonLabel: {
+    color: theme.colors.white,
     fontSize: theme.typography.body,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   footer: {
     marginTop: theme.spacing.md,

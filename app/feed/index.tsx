@@ -5,28 +5,31 @@ import { useEffect } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { getPosts } from '../../src/api/posts';
+import { FilterTabs } from '../../src/components/post/FilterTabs';
 import { PostCard } from '../../src/components/post/PostCard';
 import { Button } from '../../src/components/ui/Button';
 import { Screen } from '../../src/components/ui/Screen';
 import { useTogglePostLike } from '../../src/hooks/useTogglePostLike';
 import { queryKeys } from '../../src/query/keys';
 import { socketService } from '../../src/realtime/socket';
+import { feedUiStore } from '../../src/stores/feed-ui.store';
 import { theme } from '../../src/theme';
-import type { Post } from '../../src/types/api';
+import type { FeedTierFilter, Post } from '../../src/types/api';
 
 const FeedScreen = observer(function FeedScreen() {
   const router = useRouter();
+  const filter = feedUiStore.activeFilter;
   const { isLikePending, toggleLike } = useTogglePostLike();
 
   useEffect(() => socketService.subscribe(), []);
 
   const feedQuery = useInfiniteQuery({
-    queryKey: queryKeys.feed('all', false),
+    queryKey: queryKeys.feed(filter, false),
     queryFn: ({ pageParam }) =>
       getPosts({
         cursor: typeof pageParam === 'string' ? pageParam : undefined,
         limit: 10,
-        tier: undefined,
+        tier: filter === 'all' ? undefined : filter,
         simulateError: false,
       }),
     initialPageParam: undefined as string | undefined,
@@ -44,7 +47,7 @@ const FeedScreen = observer(function FeedScreen() {
         </View>
       ) : feedQuery.isError ? (
         <View style={styles.stateBox}>
-          <Text style={styles.errorTitle}>Лента сейчас недоступна</Text>
+          <Text style={styles.errorTitle}>Не удалось загрузить публикации</Text>
           <Text style={styles.stateText}>{feedQuery.error instanceof Error ? feedQuery.error.message : 'Попробуйте обновить экран'}</Text>
           <Button fullWidth label="Повторить" loading={feedQuery.isRefetching} disabled={feedQuery.isRefetching} onPress={() => feedQuery.refetch()} />
         </View>
@@ -60,6 +63,11 @@ const FeedScreen = observer(function FeedScreen() {
               onPress={() => router.push({ pathname: '/post/[id]', params: { id: item.id } })}
             />
           )}
+          ListHeaderComponent={
+            <View style={styles.headerWrap}>
+              <FilterTabs value={filter} onChange={(value: FeedTierFilter) => feedUiStore.setFilter(value)} />
+            </View>
+          }
           ListEmptyComponent={
             <View style={styles.stateBox}>
               <Text style={styles.errorTitle}>Публикаций пока нет</Text>
@@ -96,6 +104,10 @@ const styles = StyleSheet.create({
   content: {
     paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing.xxl,
+  },
+  headerWrap: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.sm,
   },
   stateBox: {
     flex: 1,

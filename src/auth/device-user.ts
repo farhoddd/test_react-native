@@ -6,6 +6,14 @@ const DEVICE_USER_KEY = 'mecenate-device-user-id';
 
 let cachedDeviceUserId: string | null = null;
 
+function isValidUuid(value: string | null | undefined) {
+  if (!value) {
+    return false;
+  }
+
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 function getWebStorage() {
   if (Platform.OS !== 'web') {
     return null;
@@ -44,13 +52,13 @@ async function persistDeviceUserId(value: string) {
 }
 
 export async function bootstrapDeviceUserId() {
-  if (cachedDeviceUserId) {
+  if (isValidUuid(cachedDeviceUserId)) {
     return cachedDeviceUserId;
   }
 
   const storedValue = await readStoredDeviceUserId();
 
-  if (storedValue) {
+  if (isValidUuid(storedValue)) {
     cachedDeviceUserId = storedValue;
     return storedValue;
   }
@@ -62,11 +70,16 @@ export async function bootstrapDeviceUserId() {
 }
 
 export async function getDeviceUserId() {
-  if (cachedDeviceUserId) {
+  if (isValidUuid(cachedDeviceUserId)) {
     return cachedDeviceUserId;
   }
 
   const storedValue = await readStoredDeviceUserId();
+
+  if (!isValidUuid(storedValue)) {
+    return null;
+  }
+
   cachedDeviceUserId = storedValue;
   return storedValue;
 }

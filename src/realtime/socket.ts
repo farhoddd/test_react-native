@@ -1,4 +1,4 @@
-import { getDeviceUserId } from '../auth/device-user';
+import { bootstrapDeviceUserId } from '../auth/device-user';
 import type { RealtimeEvent } from './types';
 
 type Listener = (event: RealtimeEvent) => void;
@@ -16,7 +16,7 @@ class SocketService {
       return;
     }
 
-    const token = await getDeviceUserId();
+    const token = await bootstrapDeviceUserId();
     if (!token) {
       return;
     }
