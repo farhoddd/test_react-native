@@ -60,6 +60,22 @@ Web:
 npm run web
 ```
 
+Если запускаете проект в web и внешний API блокируется браузером из-за CORS, для локальной проверки можно открыть отдельный Chrome с отключенной web-security.
+
+Для Windows удобнее запускать так:
+
+```bash
+cmd.exe /c start chrome --disable-web-security --user-data-dir="C:/chrome-dev-cors"
+```
+
+Если команда выше не работает, используйте полный путь к Chrome:
+
+```bash
+"C:/Program Files/Google/Chrome/Application/chrome.exe" --disable-web-security --user-data-dir="C:/chrome-dev-cors"
+```
+
+Это временное решение только для локальной разработки в web. Для production так делать нельзя.
+
 Проверка типов:
 
 ```bash
